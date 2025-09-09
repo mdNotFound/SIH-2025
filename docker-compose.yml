@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  edna-pipeline:
+    build: .
+    image: sih2025/deepsea-edna-pipeline:latest
+    container_name: edna_analysis_pipeline
+    
+    # Resource limits for CMLRE deployment
+    deploy:
+      resources:
+        limits:
+          cpus: '8.0'
+          memory: 16G
+        reservations:
+          cpus: '4.0'
+          memory: 8G
+    
+    # Volume mounts for data and results
+    volumes:
+      - ./data:/app/data:ro          # Input data (read-only)
+      - ./results:/app/results       # Output results
+      - ./config:/app/config:ro      # Configuration (read-only)
+      - ./logs:/app/logs             # Logs directory
+    
+    # Environment variables
+    environment:
+      - PYTHONPATH=/app/src
+      - OMP_NUM_THREADS=8
+      - NUMBA_NUM_THREADS=8
+    
+    # Command to run analysis
+    # Override this with your specific analysis command
+    command: ["python", "-m", "src.pipeline", 
+              "--config", "/app/config/config.yaml",
+              "--input", "/app/data/raw_sequences", 
+              "--output", "/app/results"]
+    
+    # Restart policy
+    restart: unless-stopped
+    
+    # Health check
+    healthcheck:
+      test: ["CMD", "python", "-c", "import sys; sys.exit(0)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # Optional: Jupyter notebook for interactive analysis
+  jupyter:
+    build: .
+    image: sih2025/deepsea-edna-pipeline:latest
+    container_name: edna_jupyter
+    
+    volumes:
+      - ./data:/app/data
+      - ./results:/app/results
+      - ./config:/app/config
+      - ./notebooks:/app/notebooks   # Jupyter notebooks
+    
+    ports:
+      - "8888:8888"
+    
+    environment:
+      - PYTHONPATH=/app/src
+      - JUPYTER_ENABLE_LAB=yes
+    
+    command: ["jupyter", "lab", 
+              "--ip=0.0.0.0", 
+              "--port=8888", 
+              "--no-browser", 
+              "--allow-root",
+              "--NotebookApp.token=''",
+              "--NotebookApp.password=''"]
+    
+    profiles:
+      - interactive  # Only start with: docker-compose --profile interactive up
+
+# Named volumes for persistent data
+volumes:
+  edna_data:
+    driver: local
+  edna_results:
+    driver: local
+  edna_models:
+    driver: local
+
+# Network configuration
+networks:
+  default:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

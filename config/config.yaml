@@ -1,0 +1,206 @@
+# SIH 2025 Deep-Sea eDNA Analysis Pipeline Configuration
+# ======================================================
+
+# General settings
+general:
+  project_name: "DeepSea_eDNA_Analysis"
+  log_level: "INFO"
+  n_threads: 8
+  random_seed: 42
+  
+# Data preprocessing settings
+preprocessing:
+  # Sequence filtering parameters
+  min_sequence_length: 100
+  max_sequence_length: 2000
+  min_quality_score: 20
+  quality_window_size: 4
+  
+  # Marker gene parameters
+  supported_markers: ["18S", "COI", "ITS"]
+  extract_markers: true
+  
+  # Feature extraction
+  generate_features: true
+  feature_types: ["basic", "kmer", "composition"]
+  kmer_size: 4
+  
+  # Processing options
+  remove_duplicates: true
+  clean_sequences: true
+  n_threads: 8
+
+# Unsupervised learning settings
+unsupervised:
+  # Sequence encoding
+  encoding_method: "kmer"  # Options: kmer, dna2vec, onehot
+  kmer_size: 6
+  max_features: 10000
+  
+  # Dimensionality reduction
+  dim_reduction:
+    method: "umap"  # Options: umap, tsne, pca
+    n_components: 50
+    n_neighbors: 15
+    min_dist: 0.1
+    metric: "cosine"
+  
+  # Clustering parameters
+  clustering:
+    method: "hdbscan"  # Options: hdbscan, dbscan, kmeans
+    min_cluster_size: 5
+    min_samples: 3
+    cluster_selection_epsilon: 0.1
+    
+  # Novel taxa detection
+  novelty_threshold: 0.7
+  min_cluster_members: 3
+
+# Deep learning classification settings
+classification:
+  # Model architecture
+  model_type: "transformer"  # Options: transformer, cnn, lstm
+  
+  # Transformer settings
+  transformer:
+    vocab_size: 4096
+    embedding_dim: 256
+    num_heads: 8
+    num_layers: 6
+    hidden_dim: 512
+    max_length: 512
+    dropout: 0.1
+  
+  # CNN settings
+  cnn:
+    num_filters: [32, 64, 128]
+    filter_sizes: [3, 5, 7]
+    pool_size: 2
+    dropout: 0.3
+  
+  # Training parameters
+  training:
+    batch_size: 32
+    learning_rate: 0.001
+    num_epochs: 100
+    early_stopping_patience: 10
+    validation_split: 0.2
+    
+  # Data augmentation
+  augmentation:
+    enable: true
+    reverse_complement: true
+    random_mutation_rate: 0.01
+
+# Biodiversity assessment settings
+biodiversity:
+  # Diversity indices
+  calculate_indices: ["shannon", "simpson", "chao1", "ace"]
+  
+  # Abundance estimation
+  abundance_method: "rarefaction"
+  rarefaction_depth: 1000
+  
+  # Community analysis
+  beta_diversity: true
+  ordination_method: "pcoa"  # Options: pcoa, nmds, ca
+  
+  # Statistical tests
+  statistical_tests:
+    enable: true
+    alpha: 0.05
+    multiple_correction: "fdr_bh"
+
+# Database integration settings (optional)
+database:
+  # NCBI integration
+  use_ncbi_validation: false
+  ncbi_db_path: "data/ncbi_nt_euk/"
+  blast_evalue: 0.001
+  blast_max_targets: 10
+  
+  # Reference databases
+  reference_dbs:
+    silva: "data/silva/silva_138.1_SSURef_NR99_tax_silva.fasta"
+    pr2: "data/pr2/pr2_version_4.14.0_SSU_mothur.fasta"
+  
+  # Taxonomic validation
+  validation_threshold: 0.8
+  min_identity: 0.7
+
+# Visualization settings
+visualization:
+  # Plot settings
+  figure_size: [12, 8]
+  dpi: 300
+  color_palette: "viridis"
+  
+  # Interactive plots
+  interactive: true
+  save_html: true
+  
+  # Output formats
+  formats: ["png", "pdf", "svg"]
+  
+  # Specific plot types
+  plots:
+    taxonomic_tree: true
+    diversity_heatmap: true
+    abundance_barplot: true
+    ordination_plot: true
+    cluster_network: true
+
+# Output settings
+output:
+  # Directory structure
+  results_dir: "results/"
+  figures_dir: "results/figures/"
+  reports_dir: "results/reports/"
+  
+  # File formats
+  sequence_format: "fasta"
+  table_format: "tsv"
+  
+  # Reporting
+  generate_html_report: true
+  include_intermediate_files: false
+  
+  # Compression
+  compress_results: true
+  compression_format: "gzip"
+
+# Performance settings
+performance:
+  # Memory management
+  max_memory_gb: 16
+  chunk_size: 1000
+  use_memory_mapping: true
+  
+  # GPU settings
+  use_gpu: false
+  gpu_device: 0
+  
+  # Parallel processing
+  multiprocessing: true
+  max_workers: 8
+
+# Quality control settings
+quality_control:
+  # Input validation
+  validate_input: true
+  check_file_integrity: true
+  
+  # Processing validation
+  validate_sequences: true
+  check_clustering_quality: true
+  
+  # Output validation
+  validate_results: true
+  generate_qc_report: true
+
+# Logging settings
+logging:
+  level: "INFO"
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  file: "logs/pipeline.log"
+  console: true
